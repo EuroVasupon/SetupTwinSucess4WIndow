@@ -1,0 +1,55 @@
+version: "3"
+
+services:
+  # Database
+  db:
+    platform: linux/x86_64
+    image: mysql:5.7
+    volumes:
+      - db_data:/var/lib/mysql
+    command: mysqld --default-authentication-plugin=mysql_native_password
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: yourdb
+      MYSQL_USER: 'user'
+      MYSQL_PASSWORD: 'funch1'
+      MYSQL_ROOT_PASSWORD: 'funch'
+      # MYSQL_USER : myuser
+      # MYSQL_DATABASE: yourdb
+      # MYSQL_PASSWORD: funch
+    networks:
+      - mysql-phpmyadmin
+  # phpmyadmin
+  phpmyadmin:
+    depends_on:
+      - db
+    image: phpmyadmin
+    restart: always
+    ports:
+      - "8090:80"
+    environment:
+      PMA_HOST: db
+      # MYSQL_USER : myuser
+      # MYSQL_PASSWORD: funch
+      MYSQL_USERNAME: 'user'
+      MYSQL_PASSWORD: 'funch1'
+      # MYSQL_USERNAME2: 'user2'
+      # MYSQL_PASSWORD2: 'funch2'
+      MYSQL_ROOT_PASSWORD: 'funch'
+    networks:
+      - mysql-phpmyadmin
+
+networks:
+  mysql-phpmyadmin:
+
+volumes:
+  db_data:
+  # 1 ไฟล์ไปอยู่ในdocker volume ตอนลบในcontainer dockerทำให้ไฟล์ไม่ได้หายไปจริงๆ
+  # 2 ถ้าไม่มีroot จะเข้าได้ไหม = rootเป็นรหัสเริ่มต้น ถ้าต้องการรหัสจริงๆต้องสร้างจากข้างใน ไม่มีrootไม่ได้
+  # 3 ถ้าเพิ่ม user/password จะเพิ่มรหัสที่เข้าได้ไหม = เข้าได้แต่ต้องใช้คำสั่ง sql(CREATE USER 'user2'@'%' IDENTIFIED BY 'funch2';) 
+  # เพื่ออนุญาติเข้าใช้phpmyadmin แต่ยังไม่สามารถเข้าถึงdatabase mysqlได้
+  # 4 จึงต้องใช้UIในphpMyadminในการสร้างuser3เพิ่มแทนจึงจะสามารถเข้าMysqlได้
+
+  # ศึกษา ต้องติ๊กpermition ให้ถูก ถ้าอยากให้userใหม่เข้าถึง databaseได้

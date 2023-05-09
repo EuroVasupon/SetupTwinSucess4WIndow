@@ -1,0 +1,55 @@
+import express from 'express';
+import * as dotenv from 'dotenv';
+import bodyParser from 'body-parser';
+import cors from 'cors';
+import routers from 'routes';
+import { HandleThrowError } from 'utils';
+import { createConnection , getRepository } from 'typeorm';
+
+import { AdminEntity } from './entities/User';
+
+dotenv.config();
+
+const port = process.env.PORT || 8081;
+const app = express();
+
+app.use(cors());
+app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
+routers.forEach(({ baseUrl, router }) => {
+  app.use(baseUrl, router);
+});
+
+app.use('/', async(req, res) => {
+  const userRepository = getRepository(AdminEntity);
+  const users = await userRepository.find();
+
+  res.send(users);
+});
+
+app.use(HandleThrowError);
+
+// createConnection()
+//   .then(() => {
+//     app.listen(port, () => {
+//       console.log('App listening on port 3000');
+//     });
+//   })
+//   .catch((error) => console.log(error));
+const start = async (): Promise<void> => {
+  try {
+  createConnection();
+
+    app.listen(port, () => {
+      console.log(`NODE_ENV=${process.env.NODE_ENV}`);
+      console.log(`App listening on port ${port}`);
+    });
+  } catch (error) {
+    console.error(error);
+    process.exit(1);
+  }
+};
+
+start();
